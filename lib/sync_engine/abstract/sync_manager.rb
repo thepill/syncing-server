@@ -13,7 +13,15 @@ module SyncEngine
     end
 
     def sync_fields
-      return @sync_fields || [:content, :enc_item_key, :content_type, :auth_hash, :deleted, :created_at]
+      return @sync_fields || [
+        :content,
+        :items_key_id,
+        :enc_item_key,
+        :content_type,
+        :auth_hash,
+        :deleted,
+        :created_at
+      ]
     end
 
     def destroy_items(uuids)
@@ -43,10 +51,7 @@ module SyncEngine
     end
 
     def set_deleted(item)
-      item.deleted = true
-      item.content = nil if item.has_attribute?(:content)
-      item.enc_item_key = nil if item.has_attribute?(:enc_item_key)
-      item.auth_hash = nil if item.has_attribute?(:auth_hash)
+      item.mark_as_deleted({dont_save: true})
     end
 
     def item_params
