@@ -15,21 +15,26 @@ class Api::ApiController < ApplicationController
   protected
 
   def authenticate_user
-    if !request.headers['Authorization'].present?
+    unless request.headers['Authorization'].present?
       render_invalid_auth
       return
     end
 
     strategy, token = request.headers['Authorization'].split(' ')
+    
     if (strategy || '').downcase != 'bearer'
       render_invalid_auth
       return
     end
 
-    claims = SyncEngine::JwtHelper.decode(token) rescue nil
+    claims = begin
+               SyncEngine::JwtHelper.decode(token)
+             rescue StandardError
+               nil
+             end
     user = User.find_by_uuid claims['user_uuid']
 
-    if user == nil
+    if user.nil?
       render_invalid_auth
       return
     end
@@ -48,18 +53,15 @@ class Api::ApiController < ApplicationController
   end
 
   def set_raven_context
-    if self.current_user
-      Raven.user_context(id: self.current_user.uuid)
-    end
+    Raven.user_context(id: current_user.uuid) if current_user
     Raven.extra_context(params: params.to_unsafe_h, url: request.url)
   end
 
   def not_found(message = 'not_found')
-    render json: {error: {:message => message, :tag => "not-found"}}, status: :not_found
+    render json: { error: { message: message, tag: 'not-found' } }, status: :not_found
   end
 
   def render_invalid_auth
-    render :json => {:error => {:tag => "invalid-auth", :message => "Invalid login credentials."}}, :status => 401
+    render json: { error: { tag: 'invalid-auth', message: 'Invalid login credentials.' } }, status: 401
   end
-
 end
