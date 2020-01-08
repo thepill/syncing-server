@@ -18,7 +18,7 @@ RSpec.describe Item, type: :model do
     end
 
     it 'can be set as deleted' do
-      i.set_deleted
+      i.mark_as_deleted
       expect(i.deleted).to eql(true)
     end
   end

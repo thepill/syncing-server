@@ -9,7 +9,6 @@ class User < ApplicationRecord
     params = { pw_cost: pw_cost, version: version, identifier: email }
 
     params[:pw_nonce] = pw_nonce if pw_nonce
-
     params[:pw_salt] = pw_salt if pw_salt
 
     if pw_func
