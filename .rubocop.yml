@@ -1,0 +1,38 @@
+inherit_from:
+  - https://shopify.github.io/ruby-style-guide/rubocop.yml
+
+AllCops:
+  Exclude:
+    - 'db/schema.rb'
+    - 'tmp/**/*'
+    - 'bin/**/*'
+    - 'config/**/*'
+
+Style/MutableConstant:
+  Enabled: true
+  Exclude:
+    - 'db/migrate/**/*'
+
+Style/MethodCallWithArgsParentheses:
+  Enabled: false
+
+Style/ClassAndModuleChildren:
+  Enabled: false
+
+Style/DateTime:
+  Enabled: false
+
+# We may enable this in the future
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Lint/SuppressedException:
+  Enabled: false
+
+Lint/NestedMethodDefinition:
+  Enabled: true
+  Exclude:
+    - 'db/migrate/**/*'
+
+Style/StringLiterals:
+  Enabled: true
