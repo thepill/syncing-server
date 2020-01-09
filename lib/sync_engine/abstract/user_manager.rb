@@ -16,7 +16,7 @@ module SyncEngine
 
     def register(email, password, params)
       user = @user_class.find_by_email(email)
-      
+
       if user
         { error: { message: 'This email is already registered.', status: 401 } }
       else
@@ -46,7 +46,7 @@ module SyncEngine
         identifier: user.email,
         pw_cost: user.pw_cost,
         pw_nonce: user.pw_nonce,
-        version: user.version
+        version: user.version,
       }
 
       if user.pw_salt

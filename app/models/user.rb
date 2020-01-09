@@ -64,7 +64,9 @@ class User < ApplicationRecord
 
   def compute_data_signature
     # in my testing, .select performs better than .pluck
-    dates = items.where(deleted: false).where.not(content_type: nil).select(:updated_at).map { |item| item.updated_at.to_datetime.strftime('%Q') }
+    dates = items.where(deleted: false).where.not(content_type: nil)
+      .select(:updated_at).map { |item| item.updated_at.to_datetime.strftime('%Q') }
+
     dates = dates.sort.reverse
     string = dates.join(',')
     hash = Digest::SHA256.hexdigest(string)
@@ -75,7 +77,7 @@ class User < ApplicationRecord
 
   def bytes_to_megabytes(bytes)
     mb = bytes / (1024.0 * 1024.0)
-    string = '%.2f' % mb
+    string = format('%.2f', mb)
     "#{string}MB"
   end
 
@@ -93,7 +95,7 @@ class User < ApplicationRecord
     sorted = items.where(deleted: false).sort_by do |item|
       item.content.bytesize
     end
-    
+
     sorted.reverse.map { |item| { uuid: item.uuid, size: bytes_to_megabytes(item.content.bytesize) } }
   end
 end

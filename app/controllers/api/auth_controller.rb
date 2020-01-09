@@ -6,7 +6,14 @@ class Api::AuthController < Api::ApiController
     user = User.find_by_email(params[:email])
 
     if user&.locked_until && user.locked_until.future?
-      render json: { error: { message: 'Too many successive login requests. Please try your request again later.' } }, status: 423
+      render(
+        json: {
+          error: {
+            message: 'Too many successive login requests. Please try your request again later.',
+          },
+        },
+        status: 423
+      )
     end
     @user_manager = user_manager
   end
@@ -35,27 +42,31 @@ class Api::AuthController < Api::ApiController
 
       unless totp.verify(received_code)
         # Invalid MFA, abort login
-        render json: {
-          error: {
-            tag: 'mfa-invalid',
-            message: 'The two-factor authentication code you entered is incorrect. Please try again.',
-            payload: { mfa_key: mfa_param_key }
-          }
-        }, status: 401
-
-        return false
+        render(
+          json: {
+            error: {
+              tag: 'mfa-invalid',
+              message: 'The two-factor authentication code you entered is incorrect. Please try again.',
+              payload: { mfa_key: mfa_param_key },
+            },
+          },
+          status: 401
+        )
+        false
       end
     else
       # Client needs to provide mfa value
-      render json: {
-        error: {
-          tag: 'mfa-required',
-          message: 'Please enter your two-factor authentication code.',
-          payload: { mfa_key: mfa_param_key }
-        }
-      }, status: 401
-
-      return false
+      render(
+        json: {
+          error: {
+            tag: 'mfa-required',
+            message: 'Please enter your two-factor authentication code.',
+            payload: { mfa_key: mfa_param_key },
+          },
+        },
+        status: 401
+      )
+      false
     end
   end
 
@@ -124,12 +135,28 @@ class Api::AuthController < Api::ApiController
 
   def change_pw
     unless params[:current_password]
-      render json: { error: { message: 'Your current password is required to change your password. Please update your application if you do not see this option.' } }, status: 401
+      render(
+        json: {
+          error: {
+            message: 'Your current password is required to change your password.'\
+              'Please update your application if you do not see this option.',
+          },
+        },
+        status: 401
+      )
       return
     end
 
     unless params[:pw_nonce]
-      render json: { error: { message: 'The change password request is missing new auth parameters. Please try again.' } }, status: 401
+      render(
+        json: {
+          error: {
+            message: 'The change password request is missing new auth parameters.'\
+            'Please try again.',
+          },
+        },
+        status: 401
+      )
       return
     end
 
@@ -138,7 +165,14 @@ class Api::AuthController < Api::ApiController
 
     if sign_in_result[:error]
       handle_failed_auth_attempt
-      render json: { error: { message: 'The current password you entered is incorrect. Please try again.' } }, status: 401
+      render(
+        json: {
+          error: {
+            message: 'The current password you entered is incorrect. Please try again.',
+          },
+        },
+        status: 401
+      )
       return
     end
 
@@ -186,7 +220,7 @@ class Api::AuthController < Api::ApiController
       identifier: email,
       pw_cost: 110_000,
       pw_nonce: Digest::SHA2.hexdigest(email + ENV['SECRET_KEY_BASE']),
-      version: '003'
+      version: '003',
     }
   end
 end

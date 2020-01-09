@@ -1,6 +1,6 @@
 class CreateUsers < ActiveRecord::Migration[5.0]
   def change
-    create_table :users, :id => false do |t|
+    create_table :users, id: false do |t|
       t.string :uuid, limit: 36, primary_key: true, null: false
       t.string :email
 
@@ -10,7 +10,7 @@ class CreateUsers < ActiveRecord::Migration[5.0]
       t.integer :pw_key_size
       t.string :pw_nonce
 
-      t.string :encrypted_password, :null => false, :default => ""
+      t.string :encrypted_password, null: false, default: ''
 
       t.timestamps
     end

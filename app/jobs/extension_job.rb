@@ -6,12 +6,12 @@ class ExtensionJob < ApplicationJob
     user = User.find_by_uuid(params[:user_id])
     return if user.nil?
 
-    if !params[:auth_params_op]
+    unless params[:auth_params_op]
       items = if params[:item_ids]
-                user.items.find(params[:item_ids])
-              else
-                user.items.where(deleted: false).to_a
-              end
+        user.items.find(params[:item_ids])
+      else
+        user.items.where(deleted: false).to_a
+      end
     end
 
     auth_params = user.auth_params

@@ -11,7 +11,7 @@ module SyncEngine
         last_updated = DateTime.now
         saved_items, conflicts = _sync_save(item_hashes, request, retrieved_items)
 
-        if saved_items.length > 0
+        unless saved_items.blank?
           last_updated = saved_items.max_by { |m| m.updated_at }.updated_at
         end
 
@@ -24,7 +24,7 @@ module SyncEngine
           saved_items: saved_items,
           conflicts: conflicts,
           sync_token: sync_token,
-          cursor_token: cursor_token
+          cursor_token: cursor_token,
         }
       end
 
@@ -46,7 +46,7 @@ module SyncEngine
               # this block is executed if this is a new record.
               is_new_record = true
             end
-          rescue StandardError => e
+          rescue StandardError
             conflicts.push(
               unsaved_item: item_hash,
               type: 'uuid_conflict'
@@ -57,11 +57,11 @@ module SyncEngine
           # SFJS did not send updated_at prior to 0.3.59.
           # updated_at value from client will not be saved, as it is not a permitted_param.
           incoming_updated_at = if item_hash['updated_at']
-                                  DateTime.parse(item_hash['updated_at'])
-                                else
-                                  # Default to epoch
-                                  Time.at(0).to_datetime
-                                end
+            DateTime.parse(item_hash['updated_at'])
+          else
+            # Default to epoch
+            Time.at(0).to_datetime
+          end
 
           unless is_new_record
             # We want to check if this updated_at value is equal to the item's current updated_at value.
@@ -72,20 +72,18 @@ module SyncEngine
             # But assuming a rogue client has gotten away with it,
             # we should also conflict in this case if the difference between the dates is greater than MIN_CONFLICT_INTERVAL seconds.
 
-            save_incoming = true
-
             our_updated_at = item.updated_at
             difference = incoming_updated_at.to_f - our_updated_at.to_f
 
-            if difference < 0
+            save_incoming = if difference < 0
               # incoming is less than ours. This implies stale data. Don't save if greater than interval
-              save_incoming = difference.abs < MIN_CONFLICT_INTERVAL
+              difference.abs < MIN_CONFLICT_INTERVAL
             elsif difference > 0
               # incoming is greater than ours. Should never be the case. If so though, don't save.
-              save_incoming = difference.abs < MIN_CONFLICT_INTERVAL
+              difference.abs < MIN_CONFLICT_INTERVAL
             else
               # incoming is equal to ours (which is desired, healthy behavior), continue with saving.
-              save_incoming = true
+              true
             end
 
             unless save_incoming

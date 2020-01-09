@@ -20,7 +20,7 @@ class Admin::AdminController < ApplicationController
   def delete_account
     email = params[:email]
     user = User.find_by_email email
-    
+
     if user
       user.items.destroy_all
       user.delete

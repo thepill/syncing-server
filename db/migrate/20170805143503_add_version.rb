@@ -4,10 +4,10 @@ class AddVersion < ActiveRecord::Migration[5.0]
 
     User.transaction do
       User.all.each do |user|
-        if user.pw_auth
-          user.version = "002"
+        user.version = if user.pw_auth
+          '002'
         else
-          user.version = "001"
+          '001'
         end
         user.save
       end

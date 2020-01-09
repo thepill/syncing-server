@@ -24,7 +24,7 @@ module SyncEngine
 
     def sync_token_from_datetime(datetime)
       version = 2
-      Base64.encode64("#{version}:#{datetime.to_f.to_s}")
+      Base64.encode64("#{version}:#{datetime.to_f}")
     end
 
     def datetime_from_sync_token(sync_token)
@@ -32,7 +32,7 @@ module SyncEngine
       parts = decoded.rpartition(':')
       timestamp_string = parts.last
       version = parts.first
-      
+
       if version == '1'
         date = DateTime.strptime(timestamp_string, '%s')
       elsif version == '2'

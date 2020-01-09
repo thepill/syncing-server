@@ -21,7 +21,7 @@ class Api::ApiController < ApplicationController
     end
 
     strategy, token = request.headers['Authorization'].split(' ')
-    
+
     if (strategy || '').downcase != 'bearer'
       render_invalid_auth
       return
@@ -43,7 +43,9 @@ class Api::ApiController < ApplicationController
     if claims['pw_hash']
       # newer versions of our jwt include the user's hashed encrypted pw,
       # to check if the user has changed their pw and thus forbid them from access if they have an old jwt
-      if ActiveSupport::SecurityUtils.secure_compare(claims['pw_hash'], Digest::SHA256.hexdigest(user.encrypted_password)) == false
+      pw_hash = Digest::SHA256.hexdigest(user.encrypted_password)
+
+      if ActiveSupport::SecurityUtils.secure_compare(claims['pw_hash'], pw_hash) == false
         render_invalid_auth
         return
       end

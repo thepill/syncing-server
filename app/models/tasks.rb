@@ -14,7 +14,7 @@ class Tasks < ApplicationRecord
       end
 
       url = content['url']
-      next if url.nil? || url.length == 0
+      next if url.blank?
 
       begin
         ExtensionJob.perform_later(
@@ -29,7 +29,7 @@ class Tasks < ApplicationRecord
 
   def self.migrate_auth_params_to_revisions
     items = Item.where(:content_type => 'SF|Extension', 'deleted' => false)
-    
+
     items.each do |item|
       content = item.decoded_content
       url = content['url']
@@ -39,7 +39,7 @@ class Tasks < ApplicationRecord
         url: url,
         user_id: item.user.uuid,
         extension_id: item.uuid,
-        auth_params_op: true
+        auth_params_op: true,
       }
       ExtensionJob.perform_later(params)
     end

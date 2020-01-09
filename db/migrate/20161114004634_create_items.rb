@@ -7,7 +7,7 @@ class CreateItems < ActiveRecord::Migration[5.0]
       t.string :enc_item_key
       t.string :auth_hash
       t.string :user_uuid
-      t.boolean :deleted, :default => false
+      t.boolean :deleted, default: false
 
       t.timestamps null: false
     end

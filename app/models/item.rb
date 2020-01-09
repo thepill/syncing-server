@@ -25,7 +25,7 @@ class Item < ApplicationRecord
     save
   end
 
-  def is_daily_backup_extension
+  def daily_backup_extension?
     return false if content_type != 'SF|Extension'
 
     content = decoded_content

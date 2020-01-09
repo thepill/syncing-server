@@ -10,11 +10,11 @@ class RegistrationJob < ApplicationJob
       key: ENV['USER_MANAGEMENT_KEY'],
       user: {
         email: user_email,
-        created_at: created_at_string.to_datetime
-      }
+        created_at: created_at_string.to_datetime,
+      },
     }
     req.body = params.to_json
     http.use_ssl = (uri.scheme == 'https')
-    response = http.request(req)
+    http.request(req)
   end
 end

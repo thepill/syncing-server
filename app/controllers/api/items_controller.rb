@@ -3,10 +3,10 @@ class Api::ItemsController < Api::ApiController
     unless @sync_manager
       version = params[:api]
       @sync_manager = if version == '20190520'
-                        SyncEngine::V20190520::SyncManager.new(current_user)
-                      else
-                        SyncEngine::V20161215::SyncManager.new(current_user)
-                      end
+        SyncEngine::V20190520::SyncManager.new(current_user)
+      else
+        SyncEngine::V20161215::SyncManager.new(current_user)
+      end
     end
 
     @sync_manager
@@ -17,7 +17,7 @@ class Api::ItemsController < Api::ApiController
       sync_token: params[:sync_token],
       cursor_token: params[:cursor_token],
       limit: params[:limit],
-      content_type: params[:content_type]
+      content_type: params[:content_type],
     }
 
     Raven.capture_message(params[:event]) if params[:event]
@@ -29,12 +29,10 @@ class Api::ItemsController < Api::ApiController
 
       # if saved_items contains daily backup extension, trigger that extension so that it executes
       # (allows immediate sync on setup to ensure proper installation)
-      backup_extensions = results[:saved_items].select { |item| item.is_daily_backup_extension && !item.deleted }
+      backup_extensions = results[:saved_items].select { |item| item.daily_backup_extension? && !item.deleted }
 
-      if backup_extensions.length > 0
-        backup_extensions.each do |ext|
-          ext.perform_associated_job
-        end
+      unless backup_extensions.blank?
+        backup_extensions.each(&:perform_associated_job)
       end
     rescue StandardError
     end
@@ -47,7 +45,7 @@ class Api::ItemsController < Api::ApiController
   end
 
   def post_to_realtime_extensions(items)
-    return if !items || items.length == 0
+    return if items.blank?
 
     extensions = current_user.items.where(content_type: 'SF|Extension', deleted: false)
 
@@ -61,12 +59,12 @@ class Api::ItemsController < Api::ApiController
   end
 
   def post_to_extension(url, items, ext)
-    if url && url.length > 0
+    unless url.blank?
       params = {
         url: url,
         item_ids: items.map { |i| i[:uuid] },
         user_id: current_user.uuid,
-        extension_id: ext.uuid
+        extension_id: ext.uuid,
       }
 
       ExtensionJob.perform_later(params)
@@ -81,7 +79,7 @@ class Api::ItemsController < Api::ApiController
 
     if content && content['subtype'].nil?
       items = current_user.items.to_a
-      post_to_extension(content['url'], items, ext) if items && items.length > 0
+      post_to_extension(content['url'], items, ext) unless items.blank?
     end
   end
 

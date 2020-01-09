@@ -11,7 +11,7 @@ module SyncEngine
         last_updated = DateTime.now
         saved_items, unsaved_items = _sync_save(item_hashes, request)
 
-        if saved_items.length > 0
+        unless saved_items.blank?
           last_updated = saved_items.max_by { |m| m.updated_at }.updated_at
         end
 
@@ -26,7 +26,7 @@ module SyncEngine
           saved_items: saved_items,
           unsaved: unsaved_items,
           sync_token: sync_token,
-          cursor_token: cursor_token
+          cursor_token: cursor_token,
         }
       end
 
@@ -45,7 +45,7 @@ module SyncEngine
           # push the retrieved item in the unsaved array so that the client can duplicate it
           saved = saved_items.find { |i| i.uuid == conflicted_uuid }
           conflicted = retrieved_items.find { |i| i.uuid == conflicted_uuid }
-          
+
           if (saved.updated_at - conflicted.updated_at).abs > min_conflict_interval
             unsaved_items.push(
               item: conflicted,
