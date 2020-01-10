@@ -12,7 +12,7 @@ module SyncEngine
         saved_items, conflicts = _sync_save(item_hashes, request, retrieved_items)
 
         unless saved_items.blank?
-          last_updated = saved_items.max_by { |m| m.updated_at }.updated_at
+          last_updated = saved_items.max_by(&:updated_at).updated_at
         end
 
         # add 1 microsecond to avoid returning same object in subsequent sync
@@ -68,9 +68,11 @@ module SyncEngine
             # If they differ, it means the client is attempting to save an item which hasn't been updated.
             # In this case, if the incoming_item.updated_at < server_item.updated_at, always conflict.
             # We don't want old items overriding newer ones.
-            # incoming_item.updated_at > server_item.updated_at would seem to be impossible, as only servers are responsible for setting updated_at.
+            # incoming_item.updated_at > server_item.updated_at would seem to be impossible,
+            # as only servers are responsible for setting updated_at.
             # But assuming a rogue client has gotten away with it,
-            # we should also conflict in this case if the difference between the dates is greater than MIN_CONFLICT_INTERVAL seconds.
+            # we should also conflict in this case if the difference between the dates is greater
+            # than MIN_CONFLICT_INTERVAL seconds.
 
             our_updated_at = item.updated_at
             difference = incoming_updated_at.to_f - our_updated_at.to_f
@@ -104,7 +106,7 @@ module SyncEngine
           item.update(item_hash.permit(*permitted_params))
 
           if item.deleted
-            set_deleted(item)
+            mark_as_deleted(item)
             item.save
           end
 
@@ -136,7 +138,7 @@ module SyncEngine
 
         items = items.where(content_type: content_type) if content_type
 
-        items = items.sort_by { |m| m.updated_at }
+        items = items.sort_by(&:updated_at)
 
         if items.count > limit
           items = items.slice(0, limit)

@@ -12,7 +12,7 @@ module SyncEngine
         saved_items, unsaved_items = _sync_save(item_hashes, request)
 
         unless saved_items.blank?
-          last_updated = saved_items.max_by { |m| m.updated_at }.updated_at
+          last_updated = saved_items.max_by(&:updated_at).updated_at
         end
 
         check_for_conflicts(saved_items, retrieved_items, unsaved_items)
@@ -36,8 +36,8 @@ module SyncEngine
 
         min_conflict_interval = 1 if Rails.env.development?
 
-        saved_ids = saved_items.map { |x| x.uuid }
-        retrieved_ids = retrieved_items.map { |x| x.uuid }
+        saved_ids = saved_items.map(&:uuid)
+        retrieved_ids = retrieved_items.map(&:uuid)
         conflicts = saved_ids & retrieved_ids # & is the intersection
         # saved items take precedence, retrieved items are duplicated with a new uuid
         conflicts.each do |conflicted_uuid|
@@ -83,7 +83,7 @@ module SyncEngine
           item.update(item_hash.permit(*permitted_params))
 
           if item.deleted == true
-            set_deleted(item)
+            mark_as_deleted(item)
             item.save
           end
 
@@ -115,7 +115,7 @@ module SyncEngine
 
         items = items.where(content_type: content_type) if content_type
 
-        items = items.sort_by { |m| m.updated_at }
+        items = items.sort_by(&:updated_at)
 
         if items.count > limit
           items = items.slice(0, limit)

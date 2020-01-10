@@ -1,14 +1,10 @@
 module SyncEngine
   class AbstractSyncManager
-    attr_accessor :sync_fields
+    attr_writer :sync_fields
 
     def initialize(user)
       @user = user
       raise 'User must be set' unless @user
-    end
-
-    def set_sync_fields(val)
-      @sync_fields = val
     end
 
     def sync_fields
@@ -42,7 +38,7 @@ module SyncEngine
       date
     end
 
-    def set_deleted(item)
+    def mark_as_deleted(item)
       item.deleted = true
       item.content = nil if item.has_attribute?(:content)
       item.enc_item_key = nil if item.has_attribute?(:enc_item_key)
