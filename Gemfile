@@ -24,11 +24,6 @@ group :development, :test, :docker_development do
   gem 'listen'
   gem 'puma'
   gem 'rspec-rails'
-  gem 'spring'
-
-  # Used by Mailatcher
-  gem 'mailcatcher'
-  gem 'sinatra', github: 'sinatra'
 end
 
 group :development, :test do
@@ -39,9 +34,4 @@ group :development, :test do
   gem 'capistrano-rails'
   gem 'capistrano-rvm'
   gem 'capistrano-shoryuken', github: 'mobitar/capistrano-shoryuken'
-  gem 'capistrano-sidekiq'
-end
-
-group :docker_development do
-  gem 'sqlite3'
 end
