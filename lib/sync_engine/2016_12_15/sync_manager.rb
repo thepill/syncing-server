@@ -77,7 +77,7 @@ module SyncEngine
             unsaved.push({
               :item => item_hash,
               :error => {:message => error.message, :tag => "uuid_conflict"}
-              })
+            })
             next
           end
 
