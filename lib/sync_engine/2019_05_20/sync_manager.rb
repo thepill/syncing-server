@@ -43,20 +43,8 @@ module SyncEngine
         conflicts = []
 
         item_hashes.each do |item_hash|
-          is_new_record = false
-          begin
-            item = @user.items.find_or_create_by(:uuid => item_hash[:uuid]) do |created_item|
-              # this block is executed if this is a new record.
-              is_new_record = true
-            end
-          rescue => error
-            conflicts.push({
-              :unsaved_item => item_hash,
-              :type => "uuid_conflict"
-            })
-            next
-          end
-
+          item = @user.items.find_by(uuid: item_hash[:uuid])
+ 
           # SFJS did not send updated_at prior to 0.3.59.
           # updated_at value from client will not be saved, as it is not a permitted_param.
           if item_hash['updated_at']
@@ -66,7 +54,7 @@ module SyncEngine
             incoming_updated_at = Time.at(0).to_datetime
           end
 
-          if !is_new_record
+          if item
             # We want to check if this updated_at value is equal to the item's current updated_at value.
             # If they differ, it means the client is attempting to save an item which hasn't been updated.
             # In this case, if the incoming_item.updated_at < server_item.updated_at, always conflict.
@@ -76,10 +64,8 @@ module SyncEngine
             # we should also conflict in this case if the difference between the dates is greater than MIN_CONFLICT_INTERVAL seconds.
 
             save_incoming = true
-
             our_updated_at = item.updated_at
             difference = incoming_updated_at.to_f - our_updated_at.to_f
-
             if difference < 0
               # incoming is less than ours. This implies stale data. Don't save if greater than interval
               save_incoming = difference.abs < MIN_CONFLICT_INTERVAL
@@ -105,9 +91,23 @@ module SyncEngine
             end
           end
 
-          item.last_user_agent = request.user_agent
-          item.update(item_hash.permit(*permitted_params))
-
+          unless item
+            item = @user.items.new({uuid: item_hash[:uuid]}.merge(item_hash.permit(*permitted_params)))
+            item.last_user_agent = request.user_agent
+            begin
+              item.save
+            rescue => e
+              conflicts.push({
+                unsaved_item: item_hash,
+                type: "uuid_conflict"
+              })
+              next
+            end
+          else
+            item.last_user_agent = request.user_agent
+            item.update(item_hash.permit(*permitted_params))
+          end
+            
           if item.deleted == true
             set_deleted(item)
             item.save
