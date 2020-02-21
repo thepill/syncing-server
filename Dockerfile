@@ -1,7 +1,5 @@
 FROM ruby:2.6.5-slim-stretch
-MAINTAINER Andy Duss <github@mindovermiles262>
-
-ENV RAILS_ENV=docker_development
+LABEL Andy Duss <github@mindovermiles262>
 
 # Update System
 RUN apt-get update && \

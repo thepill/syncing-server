@@ -1,0 +1,7 @@
+version: '3'
+services:
+  app:
+    environment: 
+      RAILS_ENV: raspberry_pi
+  db:
+    image: hypriot/rpi-mysql
